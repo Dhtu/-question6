@@ -16,7 +16,8 @@ obpoint[:, :2] = np.mgrid[0:9, 0:6].T.reshape(-1, 2)
 # obpoint *= 30
 objpoints = []
 imgpoints = []
-tempimg=cv.imread('data\left\left01.jpg')
+tempimg = cv.imread('data\left\left01.jpg')
+
 
 # print(obpoint)
 
@@ -24,7 +25,7 @@ tempimg=cv.imread('data\left\left01.jpg')
 def loadimg(img):
     # grayimg = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     retval, corners = cv.findChessboardCorners(img, inner_conner_num)
-    # corners2 = cv.cornerSubPix(grayimg, corners, (11, 11), (-1, -1), criteria)
+    # corners2 = cv.cornerSubPix(img, corners, (10, 10), (-1, -1), criteria)
     objpoints.append(obpoint)
     imgpoints.append(corners)
 
@@ -46,5 +47,20 @@ with open('data.txt', 'r') as data:
     # np.save("translation_vectors", tvecs)  # translation vectors
 
     # undistort
-    tempimg = cv.imread('data\left\left01.jpg')
-    hight,width=tempimg.shape[:2]
+    for line in lines:
+        path, datatype = line.rstrip().split(',')
+        if datatype == '0':
+            tempimg = cv.imread(path)
+            new_camtx, roi = cv.getOptimalNewCameraMatrix(camtx, dist, tempimg.shape[:2], 0)
+            dstimg = cv.undistort(tempimg, camtx, dist, None, new_camtx)
+            # save at a new folder
+            path1, path2, path3 = path.split('\\')
+            new_path = '{}\\new{}\{}'.format(path1, path2, path3)
+            cv.imwrite(new_path, dstimg)
+            # calculate the error of the process above:0.04965026811058618
+            # total_error = 0
+            # for i in range(len(objpoints)):
+            #     imgpoints2, _ = cv.projectPoints(objpoints[i], rvecs[i], tvecs[i], camtx, dist)
+            #     error = cv.norm(imgpoints[i], imgpoints2, cv.NORM_L2) / len(imgpoints2)
+            #     total_error += error
+            # print("total error: ", total_error / len(objpoints))
